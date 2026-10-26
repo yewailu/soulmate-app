@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>灵魂伴侣：SoulMate</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; background: #f5f5f7; color: #333; line-height: 1.6; padding: 12px; font-size: 15px; }
+  .container { max-width: 640px; margin: 0 auto; background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+  h1 { font-size: 20px; font-weight: 600; text-align: center; margin-bottom: 14px; letter-spacing: 0.5px; }
+  .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab-btn { padding: 7px 16px; border: 1px solid #e0e0e0; background: #fafafa; border-radius: 20px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+  .tab-btn.active { background: #333; color: #fff; border-color: #333; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .section-title { font-size: 15px; font-weight: 600; margin: 14px 0 8px; color: #444; }
+  .input-area { width: 100%; min-height: 60px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical; font-family: inherit; }
+  .input-area.example { background: #fafbfc; }
+  .btn-row { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+  button { padding: 8px 14px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; transition: 0.2s; font-family: inherit; }
+  .btn-primary { background: #333; color: #fff; }
+  .btn-secondary { background: #f0f0f0; color: #333; border: 1px solid #ddd; }
+  .btn-danger { background: #fff; color: #d33; border: 1px solid #d33; padding: 4px 10px; font-size: 12px; }
+  .recommend-list { margin-top: 12px; }
+  .quote-item { background: #fafafa; padding: 12px; border-radius: 8px; margin-bottom: 10px; position: relative; }
+  .quote-item p { margin-bottom: 6px; font-size: 14px; }
+  .quote-item .en { color: #888; font-size: 13px; font-style: italic; }
+  .quote-item .actions { margin-top: 8px; text-align: right; }
+  .prescription-box { background: #f9f9f9; border-radius: 8px; padding: 12px; min-height: 80px; margin-top: 8px; }
+  .prescription-item { background: #fff; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 14px; }
+  .prescription-item .en { color: #888; font-size: 13px; font-style: italic; }
+  .saved-match { background: #fff; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 14px; }
+  .saved-match .meta { color: #999; font-size: 12px; margin-top: 4px; }
+  .export-import { position: fixed; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 100; }
+  .export-import button { padding: 4px 10px; font-size: 12px; background: rgba(255,255,255,0.9); border: 1px solid #ccc; border-radius: 6px; }
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .category-tags { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; margin-bottom: 10px; }
+  .category-tag { padding: 4px 12px; background: #f0f0f0; border-radius: 14px; font-size: 13px; white-space: nowrap; cursor: pointer; }
+  .category-tag.active { background: #333; color: #fff; }
+  .hidden { display: none; }
+  .group-hint { font-size: 12px; color: #999; margin-left: 8px; font-weight: 400; }
+  .divider { border: none; border-top: 1px dashed #e0e0e0; margin: 14px 0; }
+  .morning-block { background: #fafbfc; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .recite-text { background: #fff; padding: 12px; border-radius: 8px; font-size: 14px; line-height: 1.9; white-space: pre-wrap; }
+  .recite-text .zh { display: block; }
+  .recite-text .en { display: block; color: #888; font-style: italic; font-size: 13px; margin-top: 4px; }
+  .recite-text .blank { color: #bbb; }
+  .example-tip { font-size: 12px; color: #999; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="export-import">
+  <button onclick="exportData()">导出</button>
+  <button onclick="document.getElementById('fileInput').click()">导入</button>
+  <input type="file" id="fileInput" accept=".json" style="display:none" onchange="importData(event)">
+</div>
+
+<div class="container">
+  <h1>灵魂伴侣：SoulMate</h1>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('morning')">晨钟暮鼓</button>
+    <button class="tab-btn" onclick="switchTab('nourish')">浸润滋养</button>
+    <button class="tab-btn" onclick="switchTab('emergency')">急症化解</button>
+  </div>
+
+  <!-- 晨钟暮鼓 -->
+  <div id="morning" class="page active">
+    <div class="section-title">晨诵（每日开场 · 诵读与自检）</div>
+    <div class="recite-text" id="reciteText"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="prevRecite()">← 上一段</button>
+      <button class="btn-primary" onclick="nextRecite()">换一段 →</button>
+    </div>
+
+    <div class="section-title">晨诵 · 手动输入</div>
+    <div class="morning-block">
+      <textarea id="reciteInput" class="input-area example" placeholder="在此抄录你喜欢的短句 / 宣言 / 今日提醒，可多行"></textarea>
+      <div class="example-tip">示例：我不与别人比，只与昨日的自己比。今天先完成，再完美。</div>
+      <div class="btn-row"><button class="btn-primary" onclick="saveRecite()">💾 保存</button></div>
+    </div>
+    <div class="section-title">我的晨诵</div>
+    <div id="reciteHistory"></div>
+
+    <hr class="divider">
+
+    <div class="section-title">晨 · 立（今日立志）</div>
+    <textarea id="goal_tasks" class="input-area" placeholder="今天最想完成的事 / 任务清单"></textarea>
+    <input type="text" id="goal_time" class="input-area" placeholder="时间安排（如 08:00-10:00）" style="margin-top:6px;min-height:auto;">
+    <input type="text" id="goal_method" class="input-area" placeholder="方法 / 重点" style="margin-top:6px;min-height:auto;">
+    <div class="btn-row"><button class="btn-primary" onclick="saveMorning()">💾 保存晨立</button></div>
+    <div id="morningHistory"></div>
+
+    <hr class="divider">
+
+    <div class="section-title">夜 · 省（今日复盘）</div>
+    <textarea id="review_done" class="input-area" placeholder="完成了什么"></textarea>
+    <textarea id="review_state" class="input-area" placeholder="状态 / 心情（可打 1-10 分）" style="margin-top:6px;"></textarea>
+    <textarea id="review_win" class="input-area" placeholder="收获 / 亮点" style="margin-top:6px;"></textarea>
+    <textarea id="review_fail" class="input-area" placeholder="卡点在哪" style="margin-top:6px;"></textarea>
+    <textarea id="review_fix" class="input-area" placeholder="改进（可回灌到次日晨立）" style="margin-top:6px;"></textarea>
+    <div class="btn-row"><button class="btn-primary" onclick="saveReview()">💾 保存夜省</button></div>
+    <div id="reviewHistory"></div>
+  </div>
+
+  <!-- 浸润滋养 -->
+  <div id="nourish" class="page">
+    <div class="category-tags" id="nourishTags"></div>
+    <div class="btn-row" style="margin:6px 0;">
+      <button class="btn-primary" onclick="nextNourishGroup()">🔀 换一组（10句）</button>
+      <span class="group-hint" id="groupHint"></span>
+    </div>
+    <div id="nourishContent"></div>
+    <hr class="divider">
+    <div class="section-title">写一条循环笔记</div>
+    <textarea id="noteInput" class="input-area" placeholder="此刻的感受 / 循环记录..."></textarea>
+    <div class="btn-row"><button class="btn-primary" onclick="saveNote()">💾 保存笔记</button></div>
+    <div id="noteHistory"></div>
+  </div>
+
+  <!-- 急症化解 -->
+  <div id="emergency" class="page">
+    <div class="section-title">症像（描述当下问题、焦虑原因）</div>
+    <textarea id="symptomInput" class="input-area" placeholder="怎样克服焦虑"></textarea>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="matchQuote()">🔍 对症匹配格言</button>
+      <button class="btn-secondary" onclick="clearMatch()">🧹 清空匹配</button>
+    </div>
+    <div class="section-title">对症推荐（1-5）</div>
+    <div id="recommendList" class="recommend-list"></div>
+    <div class="section-title">处方（被调用格言 / 手动输入）</div>
+    <div id="prescriptionBox" class="prescription-box"></div>
+    <div class="section-title">新增匹配（手动输入）</div>
+    <textarea id="newMatchInput" class="input-area" placeholder="输入你想保存的句子（自己想的/看到的）"></textarea>
+    <div class="btn-row"><button class="btn-primary" onclick="saveNewMatch()">💾 保存</button></div>
+    <div id="savedMatches"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== 数据层 ==========
+let appData = JSON.parse(localStorage.getItem('soulmate_data')) || {
+  reciteIndex: 0,
+  reciteCustom: [],
+  morning: [],
+  review: [],
+  nourishCategory: 'all',
+  nourishOffset: 0,
+  customQuotes: [],
+  notes: [],
+  prescription: []
+};
+
+// 内置晨诵段（可切换）
+const reciteSegments = [
+  "我承认此刻的焦虑，但不被它定义。\n今天，我只做能做的那一步。",
+  "我不与别人比，只与昨日的自己比。\n今天先完成，再完美。",
+  "生命宝贵，分秒不可辜负。\n把这一日，当成礼物来过。",
+  "心若乱，先整理眼前一尺之地。\n行动是焦虑的解药。",
+  "我允许一切发生，也允许自己慢慢来。\n持续，胜过冲刺。"
+];
+
+// 内置格言库（约50条，含分类标签）
+const quoteDB = [
+  {cn:"一切都会过去。", en:"This too shall pass.", cat:"焦虑安抚"},
+  {cn:"别怕慢，只怕站。", en:"Don't fear slow, fear stop.", cat:"行动推动"},
+  {cn:"把大目标拆小。", en:"Break big goals small.", cat:"overwhelm拆解"},
+  {cn:"接纳自己，是改变的开始。", en:"Self-acceptance is the start of change.", cat:"自我接纳"},
+  {cn:"咬着牙行动吧，也许一点点的小进步就会让你重拾信心。", en:"Act with grit; tiny progress rebuilds faith.", cat:"行动推动"},
+  {cn:"一步一步来，先从容易的开始。", en:"Step by step, start with easy.", cat:"overwhelm拆解"},
+  {cn:"首先，心要静下来。", en:"First, calm the mind.", cat:"焦虑安抚"},
+  {cn:"你不需要完美，只需要完成。", en:"Not perfect, just done.", cat:"行动推动"},
+  {cn:"呼吸，只是呼吸。", en:"Breathe, just breathe.", cat:"焦虑安抚"},
+  {cn:"今天的你比昨天勇敢。", en:"You're braver than yesterday.", cat:"自我接纳"},
+  {cn:"困难是包装粗糙的礼物。", en:"Difficulty is a gift roughly wrapped.", cat:"overwhelm拆解"},
+  {cn:"允许自己休息，不是放弃。", en:"Rest is not surrender.", cat:"自我接纳"},
+  {cn:"焦点放在能做的，而非不能。", en:"Focus on what you can.", cat:"overwhelm拆解"},
+  {cn:"每一个现在都是重新开始的点。", en:"Every now is a restart.", cat:"焦虑安抚"},
+  {cn:"温柔对自己，严厉对行动。", en:"Gentle to self, strict to action.", cat:"行动推动"},
+  {cn:"恐惧是成长的信号。", en:"Fear signals growth.", cat:"焦虑安抚"},
+  {cn:"先做5分钟，骗过大脑。", en:"Do 5 min, trick the brain.", cat:"行动推动"},
+  {cn:"你已度过所有昨天。", en:"You've survived all yesterdays.", cat:"自我接纳"},
+  {cn:"混乱中找一件确定的事做。", en:"In chaos, do one certain thing.", cat:"overwhelm拆解"},
+  {cn:"不比较，只超越昨天的自己。", en:"No compare, only beat yesterday's you.", cat:"自我接纳"},
+  {cn:"放下期待，拥抱真实。", en:"Drop expectations, embrace reality.", cat:"自我接纳"},
+  {cn:"行动是焦虑的解药。", en:"Action cures anxiety.", cat:"行动推动"},
+  {cn:"此刻足够好。", en:"This moment is enough.", cat:"焦虑安抚"},
+  {cn:"小步快跑，迭代自己。", en:"Small steps, fast iterations.", cat:"行动推动"},
+  {cn:"你值得被善待，尤其是被自己。", en:"You deserve kindness, especially yours.", cat:"自我接纳"},
+  {cn:"复杂问题，简单开始。", en:"Complex problem, simple start.", cat:"overwhelm拆解"},
+  {cn:"停不下来时，先停下来。", en:"Can't stop? Stop first.", cat:"焦虑安抚"},
+  {cn:"完成胜于完美。", en:"Done beats perfect.", cat:"行动推动"},
+  {cn:"你的感受被允许存在。", en:"Your feelings are allowed.", cat:"自我接纳"},
+  {cn:"拆解到最小行动单元。", en:"Break to tiniest action unit.", cat:"overwhelm拆解"},
+  {cn:"平静是力量之源。", en:"Calm is power's source.", cat:"焦虑安抚"},
+  {cn:"对自己诚实，就是自由。", en:"Honesty to self is freedom.", cat:"自我接纳"},
+  {cn:"开始，就是成功的一半。", en:"Starting is half success.", cat:"行动推动"},
+  {cn:"不必一气呵成，持续就好。", en:"No need rush, just persist.", cat:"overwhelm拆解"},
+  {cn:"此刻的痛会蜕变。", en:"Current pain will transform.", cat:"自我接纳"},
+  {cn:"先照顾身体，再谈灵魂。", en:"Body first, soul next.", cat:"焦虑安抚"},
+  {cn:"微小的坚持，宏大的结果。", en:"Tiny persistence, huge result.", cat:"行动推动"},
+  {cn:"你不是孤岛，允许被支持。", en:"Not an island, allow support.", cat:"自我接纳"},
+  {cn:"优先级：重要不紧急先做。", en:"Priority: important-not-urgent first.", cat:"overwhelm拆解"},
+  {cn:"回到当下，这里没有危险。", en:"Back to now, no danger here.", cat:"焦虑安抚"},
+  {cn:"千里之行，始于足下。", en:"A journey begins with a single step.", cat:"行动推动"},
+  {cn:"心静自然凉。", en:"Calm mind brings ease.", cat:"焦虑安抚"},
+  {cn:"独处亦清欢。", en:"Solitude has its own joy.", cat:"自我接纳"},
+  {cn:"宽恕别人，解放自己。", en:"Forgive others, free yourself.", cat:"自我接纳"},
+  {cn:"允许一切发生。", en:"Allow everything to be.", cat:"自我接纳"},
+  {cn:"时间会证明坚持。", en:"Time proves persistence.", cat:"行动推动"},
+  {cn:"生命意义在于体验。", en:"Life's meaning is in experience.", cat:"自我接纳"},
+  {cn:"今天也要温柔待己。", en:"Be gentle to yourself today.", cat:"自我接纳"},
+  {cn:"星光不问赶路人。", en:"Stars bless the walker.", cat:"行动推动"}
+];
+
+const nourishCats = [
+  {id:'all', name:'全部'},
+  {id:'焦虑安抚', name:'焦虑安抚'},
+  {id:'行动推动', name:'行动推动'},
+  {id:'overwhelm拆解', name:'拆解繁杂'},
+  {id:'自我接纳', name:'自我接纳'}
+];
+
+const GROUP_SIZE = 10;
+
+// ========== 工具 ==========
+function save() { localStorage.setItem('soulmate_data', JSON.stringify(appData)); }
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+function switchTab(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  event.target.classList.add('active');
+  if(name==='nourish') renderNourish();
+  if(name==='morning') renderMorning();
+  if(name==='emergency') renderSavedMatches();
+}
+
+// ========== 晨钟暮鼓 · 晨诵 ==========
+function renderRecite() {
+  const seg = reciteSegments[appData.reciteIndex % reciteSegments.length];
+  const lines = seg.split('\n');
+  let html = '';
+  lines.forEach(ln=>{
+    if(ln.trim()==='') return;
+    html += `<span class="zh">${ln}</span>`;
+    // 给中文行配一句英文（按顺序取内置库前几条）
+  });
+  // 附加英文对照（取该段对应的英文）
+  const enMap = [
+    "I feel this anxiety, but it does not define me.\nToday, I take only the step I can take.",
+    "I compare not with others, but with yesterday's me.\nFirst done, then perfect.",
+    "Life is precious; no moment is to be wasted.\nTreat this day as a gift.",
+    "When the mind is messy, tidy one foot of space.\nAction is anxiety's cure.",
+    "I allow everything to happen, and allow myself to go slow.\nSteady beats sprinting."
+  ];
+  const en = enMap[appData.reciteIndex % enMap.length];
+  en.split('\n').forEach(ln=>{ if(ln.trim()!=='') html += `<span class="en">${ln}</span>`; });
+  document.getElementById('reciteText').innerHTML = html;
+}
+function nextRecite() { appData.reciteIndex++; save(); renderRecite(); showToast('已换一段'); }
+function prevRecite() { appData.reciteIndex = (appData.reciteIndex - 1 + reciteSegments.length) % reciteSegments.length; save(); renderRecite(); }
+function saveRecite() {
+  const v = document.getElementById('reciteInput').value.trim();
+  if(!v) return showToast('写点什么吧');
+  appData.reciteCustom.unshift({text:v, time:new Date().toLocaleString()});
+  save(); document.getElementById('reciteInput').value='';
+  renderReciteHistory(); showToast('晨诵已保存');
+}
+function renderReciteHistory() {
+  const h = document.getElementById('reciteHistory');
+  if(!appData.reciteCustom.length) { h.innerHTML=''; return; }
+  h.innerHTML = appData.reciteCustom.map((m,i)=>`<div class="saved-match"><p>${m.text}</p><div class="meta">${m.time} <button class="btn-danger" onclick="delRecite(${i})">删</button></div></div>`).join('');
+}
+function delRecite(i) { appData.reciteCustom.splice(i,1); save(); renderReciteHistory(); }
+
+function saveMorning() {
+  const tasks = document.getElementById('goal_tasks').value.trim();
+  const time = document.getElementById('goal_time').value.trim();
+  const method = document.getElementById('goal_method').value.trim();
+  if(!tasks && !time && !method) return showToast('填点晨立内容吧');
+  appData.morning.unshift({tasks, time, method, date:new Date().toLocaleDateString()});
+  save();
+  document.getElementById('goal_tasks').value=''; document.getElementById('goal_time').value=''; document.getElementById('goal_method').value='';
+  renderMorning(); showToast('晨立已保存');
+}
+function saveReview() {
+  const done = document.getElementById('review_done').value.trim();
+  const state = document.getElementById('review_state').value.trim();
+  const win = document.getElementById('review_win').value.trim();
+  const fail = document.getElementById('review_fail').value.trim();
+  const fix = document.getElementById('review_fix').value.trim();
+  if(!done && !state && !win && !fail && !fix) return showToast('填点夜省内容吧');
+  appData.review.unshift({done, state, win, fail, fix, date:new Date().toLocaleDateString()});
+  save();
+  document.getElementById('review_done').value=''; document.getElementById('review_state').value='';
+  document.getElementById('review_win').value=''; document.getElementById('review_fail').value=''; document.getElementById('review_fix').value='';
+  renderMorning(); showToast('夜省已保存');
+}
+function renderMorning() {
+  const h = document.getElementById('morningHistory');
+  h.innerHTML = appData.morning.map((m,i)=>`<div class="saved-match"><p><strong>${m.date}</strong></p><p>${m.tasks||''}</p><p class="en">${m.time||''} ${m.method||''}</p><div class="meta"><button class="btn-danger" onclick="delMorning(${i})">删</button></div></div>`).join('');
+  const r = document.getElementById('reviewHistory');
+  r.innerHTML = appData.review.map((m,i)=>`<div class="saved-match"><p><strong>${m.date} 夜省</strong></p><p>完成：${m.done||'-'}｜状态：${m.state||'-'}</p><p>亮点：${m.win||'-'}｜卡点：${m.fail||'-'}</p><p>改进：${m.fix||'-'}</p><div class="meta"><button class="btn-danger" onclick="delReview(${i})">删</button></div></div>`).join('');
+}
+function delMorning(i) { appData.morning.splice(i,1); save(); renderMorning(); }
+function delReview(i) { appData.review.splice(i,1); save(); renderMorning(); }
+
+// ========== 浸润滋养 ==========
+function getNourishPool() {
+  return appData.nourishCategory==='all' ? quoteDB : quoteDB.filter(q=>q.cat===appData.nourishCategory);
+}
+function renderNourish() {
+  const tags = document.getElementById('nourishTags');
+  tags.innerHTML = nourishCats.map(c=>`<div class="category-tag ${appData.nourishCategory===c.id?'active':''}" onclick="setCat('${c.id}')">${c.name}</div>`).join('');
+  const pool = getNourishPool();
+  const total = pool.length;
+  const maxOffset = Math.max(0, total - GROUP_SIZE);
+  if(appData.nourishOffset > maxOffset) appData.nourishOffset = maxOffset;
+  const slice = pool.slice(appData.nourishOffset, appData.nourishOffset + GROUP_SIZE);
+  const list = document.getElementById('nourishContent');
+  list.innerHTML = slice.map(q=>`<div class="quote-item"><p>${q.cn}</p><p class="en">${q.en}</p><p class="en">#${q.cat}</p></div>`).join('');
+  const start = appData.nourishOffset + 1, end = Math.min(appData.nourishOffset + GROUP_SIZE, total);
+  document.getElementById('groupHint').textContent = `第 ${start}-${end} 句 / 共 ${total} 句`;
+}
+function nextNourishGroup() {
+  const pool = getNourishPool();
+  const maxOffset = Math.max(0, pool.length - GROUP_SIZE);
+  appData.nourishOffset += GROUP_SIZE;
+  if(appData.nourishOffset > maxOffset) appData.nourishOffset = 0; // 循环
+  save(); renderNourish();
+}
+function setCat(id) { appData.nourishCategory=id; appData.nourishOffset=0; save(); renderNourish(); }
+
+function saveNote() {
+  const v = document.getElementById('noteInput').value.trim();
+  if(!v) return showToast('写点笔记吧');
+  appData.notes.unshift({text:v, cat:appData.nourishCategory, time:new Date().toLocaleString()});
+  save(); document.getElementById('noteInput').value='';
+  renderNotes(); showToast('笔记已保存');
+}
+function renderNotes() {
+  const h = document.getElementById('noteHistory');
+  h.innerHTML = appData.notes.map((n,i)=>`<div class="saved-match"><p>${n.text}</p><div class="meta">${n.time} · ${nourishCats.find(c=>c.id===n.cat)?.name||''} <button class="btn-danger" onclick="delNote(${i})">删</button></div></div>`).join('');
+}
+function delNote(i) { appData.notes.splice(i,1); save(); renderNotes(); }
+
+// ========== 急症化解 ==========
+function matchQuote() {
+  const sym = document.getElementById('symptomInput').value.trim();
+  if(!sym) return showToast('先描述下症像吧');
+  let pool = quoteDB;
+  if(sym.includes('焦虑')||sym.includes('怕')||sym.includes('慌')) pool = quoteDB.filter(q=>q.cat==='焦虑安抚');
+  else if(sym.includes('懒')||sym.includes('动')||sym.includes('拖')) pool = quoteDB.filter(q=>q.cat==='行动推动');
+  else if(sym.includes('多')||sym.includes('乱')||sym.includes('杂')) pool = quoteDB.filter(q=>q.cat==='overwhelm拆解');
+  else if(sym.includes('嫌')||sym.includes('差')||sym.includes('弃')||sym.includes('孤')) pool = quoteDB.filter(q=>q.cat==='自我接纳');
+  const picks = pool.sort(()=>0.5-Math.random()).slice(0,5);
+  const box = document.getElementById('recommendList');
+  box.innerHTML = picks.map((q,i)=>`<div class="quote-item"><p><strong>格言${i+1}</strong></p><p>${q.cn}</p><p class="en">${q.en}</p><div class="actions"><button class="btn-secondary" onclick='addToPrescription(${JSON.stringify(q.cn).replace(/'/g,"&#39;")}, ${JSON.stringify(q.en).replace(/'/g,"&#39;")})'>➕ 加入处方</button></div></div>`).join('');
+}
+function clearMatch() { document.getElementById('recommendList').innerHTML=''; document.getElementById('symptomInput').value=''; showToast('已清空'); }
+function addToPrescription(cn, en) { appData.prescription.push({cn, en}); save(); renderPrescription(); showToast('已加入处方'); }
+function renderPrescription() {
+  const box = document.getElementById('prescriptionBox');
+  if(appData.prescription.length===0) { box.innerHTML='<p style="color:#999;font-size:13px;">处方空空，从上方推荐加入吧</p>'; return; }
+  box.innerHTML = appData.prescription.map((p,i)=>`<div class="prescription-item"><p>${p.cn}</p><p class="en">${p.en}</p><button class="btn-danger" onclick="delPrescription(${i})">删</button></div>`).join('');
+}
+function delPrescription(i) { appData.prescription.splice(i,1); save(); renderPrescription(); }
+function saveNewMatch() {
+  const v = document.getElementById('newMatchInput').value.trim();
+  if(!v) return showToast('输入想保存的句子');
+  appData.customQuotes.unshift({text:v, time:new Date().toLocaleString()});
+  save(); document.getElementById('newMatchInput').value='';
+  renderSavedMatches(); showToast('已保存');
+}
+function renderSavedMatches() {
+  const box = document.getElementById('savedMatches');
+  box.innerHTML = appData.customQuotes.map((m,i)=>`<div class="saved-match"><p>${m.text}</p><div class="meta">${m.time} <button class="btn-danger" onclick="delMatch(${i})">删</button></div></div>`).join('');
+}
+function delMatch(i) { appData.customQuotes.splice(i,1); save(); renderSavedMatches(); }
+
+// ========== 导入导出 ==========
+function exportData() {
+  const dataStr = JSON.stringify(appData, null, 2);
+  const blob = new Blob([dataStr], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='soulmate.json'; a.click();
+  URL.revokeObjectURL(url); showToast('已导出');
+}
+function importData(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { try { appData = JSON.parse(ev.target.result); save(); location.reload(); } catch(err) { showToast('文件格式错误'); } };
+  reader.readAsText(file);
+}
+
+// 初始化
+renderRecite();
+renderReciteHistory();
+renderMorning();
+renderNourish();
+renderNotes();
+renderPrescription();
+</script>
+</body>
+</html>
