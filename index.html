@@ -400,8 +400,18 @@ function importData(e) {
   reader.onload = ev => { try { appData = JSON.parse(ev.target.result); save(); location.reload(); } catch(err) { showToast('文件格式错误'); } };
   reader.readAsText(file);
 }
+// ... 前面的原有代码 ...
+renderNotes();
+renderPrescription();
 
-// 初始化
+// ===== 局部追加：晨诵自选/保存/删除（新加的代码贴这里） =====
+const STORAGE_KEY = 'soulmate_custom_quotes';
+let customQuotes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+// ...（后续完整JS片段）...
+renderCustomList();
+// =====================================================
+
+// 初始化（404-410行原封不动，绝对不覆盖、不移动）
 renderRecite();
 renderReciteHistory();
 renderMorning();
