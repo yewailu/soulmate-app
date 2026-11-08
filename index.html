@@ -67,17 +67,19 @@
 
   <!-- 晨钟暮鼓 -->
   <div id="morning" class="page active">
-    <div class="section-title">晨诵（每日开场 · 诵读与自检）</div>
+    <div class="section-title">晨诵（每日开场 ）</div>
     <div class="recite-text" id="reciteText"></div>
     <div class="btn-row">
       <button class="btn-secondary" onclick="prevRecite()">← 上一段</button>
       <button class="btn-primary" onclick="nextRecite()">换一段 →</button>
-    </div>
-    <div class="section-title">我的晨诵</div>
-    <div id="reciteHistory"></div>
+        
+      </div>
    
+   <div class="section-title">我的晨诵</div>
+    <div id="reciteHistory"></div>
+  
    <div class="section-title">晨诵 · 手动输入</div>
-    <div class="morning-block">
+   <div class="morning-block">
       <textarea id="reciteInput" class="input-area example" placeholder="在此抄录你喜欢的短句 / 宣言 / 今日提醒，可多行"></textarea>
       <div class="example-tip">示例：我不与别人比，只与昨日的自己比。今天先完成，再完美。</div>
       <div class="btn-row"><button class="btn-primary" onclick="saveRecite()">💾 保存</button></div>
@@ -114,7 +116,7 @@
     </div>
     <div id="nourishContent"></div>
     <hr class="divider">
-    <div class="section-title">写一条循环笔记</div>
+    <div class="section-title">新增.手输</div>
     <textarea id="noteInput" class="input-area" placeholder="此刻的感受 / 循环记录..."></textarea>
     <div class="btn-row"><button class="btn-primary" onclick="saveNote()">💾 保存笔记</button></div>
     <div id="noteHistory"></div>
